@@ -9,5 +9,5 @@ RUN apk add --no-cache bash gnupg vim && \
     adduser -D gpg -s /bin/bash
 
 USER gpg
-
+WORKDIR /home/gpg
 ENTRYPOINT ["bash"]
