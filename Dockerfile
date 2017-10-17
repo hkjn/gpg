@@ -1,6 +1,4 @@
-FROM ARG_FROM
-
-LABEL maintainer="Henrik Jonsson <me@hkjn.me>"
+FROM hkjn/alpine
 
 # GPG needs the GPG_TTY set to not get confused:
 # - https://unix.stackexchange.com/a/296496

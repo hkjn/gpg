@@ -1,21 +1,23 @@
-#!/usr/bin/env bash
-#
-# Build the hkjn/gpg Docker images.
-#
 set -euo pipefail
 
-DOCKER_USER="hkjn"
-DOCKER_IMAGE="gpg"
-CPU_ARCH="$(uname -m)"
-BASEIMAGE=hkjn/alpine:${CPU_ARCH}
-BUILD_DIR="$(mktemp -d)"
-TAG="$DOCKER_USER/$DOCKER_IMAGE:$CPU_ARCH"
+declare DOCKER_USER="hkjn"
+declare DOCKER_IMAGE="gpg"
+declare CPU_ARCH="$(uname -m)"
+declare -A DOCKER_ARCHS
+DOCKER_ARCHS["x86_64"]="amd64"
+DOCKER_ARCHS["armv7l"]="arm"
+declare DOCKER_ARCH=${DOCKER_ARCHS[${CPU_ARCH}]}
+declare TAG="${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_ARCH}"
+declare NO_PUSH=${NO_PUSH:-""}
 
-echo "Building $TAG in $BUILD_DIR.."
-sed "s|ARG_FROM|${BASEIMAGE}|g" Dockerfile.in > $BUILD_DIR/Dockerfile
-docker build -t $TAG $BUILD_DIR
-NO_PUSH=${NO_PUSH:-""}
-if [[ ! "$NO_PUSH" ]]; then
+echo "Building ${TAG}.."
+docker build -t ${TAG} .
+if [[ ! "${NO_PUSH}" ]]; then
   docker push ${TAG}
 fi
+
+docker run -v $HOME/.docker:/home/go/.docker:ro --rm hkjn/manifest-tool \
+       push from-args --platforms linux/amd64,linux/arm \
+                      --template ${DOCKER_USER}/${DOCKER_IMAGE}:ARCH \
+                      --target ${DOCKER_USER}/${DOCKER_IMAGE}
 
